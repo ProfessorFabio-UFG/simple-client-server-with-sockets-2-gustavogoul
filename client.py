@@ -1,9 +1,30 @@
+import pickle
 from socket  import *
-from constCS import * #-
+from constCS import *
 
 s = socket(AF_INET, SOCK_STREAM)
-s.connect((HOST, PORT)) # connect to server (block until accepted)
-s.send(str.encode('Hello, world'))  # send some data
-data = s.recv(1024)     # receive the response
-print (bytes.decode(data))            # print the result
-s.close()               # close the connection
+print("Tentando conectar ao servidor...")
+s.connect((HOST, PORT))
+print("Conectado com sucesso!")
+op = input("Qual operação a ser realizada? (add, subtract, multiply, divide)\n")
+num1 = int(input("Primeiro número: "))
+num2 = int(input("Segundo número: "))
+
+data = {"OP": op, "Num1": num1, "Num2": num2}
+msg = pickle.dumps(data)
+s.send(msg)
+print("Mensagem enviada, aguardando resposta...")
+
+msg = s.recv(1024)
+data = pickle.loads(msg)
+
+if data["STATUS"] == "OK":
+  print ("Resultado da operação: ", data["RES"])
+elif data["STATUS"] == "NOK" and data["RES"] == 1:
+  print ("Operação não existe.")
+else:
+  print ("Resultado inesperado.")
+
+s.close()
+print("Conexão encerrada.")
+input("Pressione Enter para sair...")
